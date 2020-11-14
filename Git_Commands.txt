@@ -1,3 +1,4 @@
+git -> show all option
 git init -> Starts an empty repository
 
 git log -> historic of commits (git log --all --graph --decorate)
@@ -13,6 +14,8 @@ git pull -> git fetch + git merge
 
 git clone --shallow -> Copies the most recent version from the repo without the history
 
+
+git clean-> Eliminate from the working directory any ??unversioned files
 git clean -d -n -> deletes the untracked files, with -d and -n it makes a dry run to show you what would delete
 git clean -i -> you can specify which unstaged files delete 
 
