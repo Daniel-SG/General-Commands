@@ -44,3 +44,4 @@ git config --global alias.sla 'log --oneline --decorate --graph --all' -> to add
 git commit --amend --no-edit -> allows you to add new files in the previous commit (--no-edit, you don't have to specify a new commit message)
 
 Git Tutorial -> https://thoughtbot.com/upcase/mastering-git
+Git Commands explanation -> http://ndpsoftware.com/git-cheatsheet.html#loc=stash;
