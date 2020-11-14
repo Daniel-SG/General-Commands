@@ -1,0 +1,18 @@
+UNZIP AND SEARCH PATTERN
+gunzip -c archivo.gz | grep 'pattern to search'
+
+COPY FROM LOCAL TO SERVER
+scp my_user_in_server@ip_server:path .
+
+COUNT WORDS FROM A FILE
+grep -c WORD_TO_COUNT FILENAME.TXT
+
+LINUX SPACE HDFS (first column physical space, second replication)
+hdfs dfs -du -h /folder/
+
+
+Space linux fs
+du -sh /root/path/path2/
+
+Spaces system
+df
