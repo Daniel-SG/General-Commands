@@ -1,0 +1,46 @@
+git init -> Starts an empty repository
+
+git log -> historic of commits (git log --all --graph --decorate)
+git log --oneline -S Alice -> contains the commits that have "Alice" in the commit message
+git log 61966bf.. chapter1.txt -> shows the commits after that one related to chapter1.txt file
+git log --grep -i 'big changes' commits that contains 'big changes' phrase in the commit message (-i case insensitively)
+
+git checkout commit_id -> Retrieves the files from that commit_id
+git checkout -f master -> Same as git checkout but overwriting the files that had been modified
+git checkout . -> reeplaces all from the working directory with files from the last commit
+
+git pull -> git fetch + git merge
+
+git clone --shallow -> Copies the most recent version from the repo without the history
+
+git clean -d -n -> deletes the untracked files, with -d and -n it makes a dry run to show you what would delete
+git clean -i -> you can specify which unstaged files delete 
+
+git add -p fileName.txt -> Selecting "s" it allows you choosing which changes add
+
+git stash -> caches the files and put back the original files based on the last commit, if there are new files, they are NOT added
+git stash -u -> Adds the new files in the cache area
+git stash pop -> Put back the files that were in the cache area
+
+git commit --verbose to see the changes you are committing in your editor
+
+git show c7d5d6876 gives you the detail of a commitgit log --oneline shows only the first line of the commit message 
+git show e420911~1 gives us the parent commit from e420911
+git show :/Second as before but with commit message
+
+git blame filename -> tell us which person, and more importantly which commit, is to blame for the currentstate of each line in the file 
+
+git grep Alice 3ba3f98~1 -> commits of files that contain Alice and are before that commit
+
+git revert 3ba3f98 -> reviert that commit and clear the working directory
+
+git reset -> it is the opposite operation as git add (delete from stage)
+git reset commitid -> will clear the index, and roll the repository back to that revision, as if the subsequent commits had never happened. It won’t change the                         working directory, so the current state of our files won’tbe lost, but the history of how we got to that state will be
+git reset --soft HEAD^ -> This has the effect of undoing the commit, taking us back to just before we made it. Note it leaves our changes staged in the index.
+git reset --hard -> clear the index and change the working directory
+
+git config --global alias.sla 'log --oneline --decorate --graph --all' -> to add an alias,git sla = git log --oneline --decorate --graph --all
+
+git commit --amend --no-edit -> allows you to add new files in the previous commit (--no-edit, you don't have to specify a new commit message)
+
+Git Tutorial -> https://thoughtbot.com/upcase/mastering-git
