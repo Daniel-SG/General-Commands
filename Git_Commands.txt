@@ -12,6 +12,8 @@ git checkout . -> reeplaces all from the working directory with files from the l
 
 git pull -> git fetch + git merge
 
+git push origin master //origin is the copy of our repository 
+
 git clone --shallow -> Copies the most recent version from the repo without the history
 
 
