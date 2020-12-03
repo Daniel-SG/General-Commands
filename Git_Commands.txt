@@ -28,6 +28,7 @@ git stash -u -> Adds the new files in the cache area
 git stash pop -> Put back the files that were in the cache area
 
 git commit --verbose to see the changes you are committing in your editor
+git commit -am  -- git add. + git commit -m in one single command (does not add new files)
 
 git show c7d5d6876 gives you the detail of a commitgit log --oneline shows only the first line of the commit message 
 git show e420911~1 gives us the parent commit from e420911
