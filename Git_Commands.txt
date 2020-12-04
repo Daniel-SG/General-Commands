@@ -16,12 +16,14 @@ git push origin master //origin is the copy of our repository
 
 git clone --shallow -> Copies the most recent version from the repo without the history
 
+git mv oldfilename newfilename
 
 git clean-> Eliminate from the working directory any ??unversioned files
 git clean -d -n -> deletes the untracked files, with -d and -n it makes a dry run to show you what would delete
 git clean -i -> you can specify which unstaged files delete 
 
 git add -p fileName.txt -> Selecting "s" it allows you choosing which changes add
+git add -A -> see changes when files have been renamed or deleted and add them in the staging area
 
 git stash -> caches the files and put back the original files based on the last commit, if there are new files, they are NOT added
 git stash -u -> Adds the new files in the cache area
@@ -33,6 +35,14 @@ git commit -am  -- git add. + git commit -m in one single command (does not add 
 git show c7d5d6876 gives you the detail of a commitgit log --oneline shows only the first line of the commit message 
 git show e420911~1 gives us the parent commit from e420911
 git show :/Second as before but with commit message
+
+
+git diff -> compare changes between the working directory and the staging area
+git diff -- filename.txt compare changes between the working directory and the staging area for filename.txt file
+git diff --staged HEAD -> Compares the changes between the staging area and the last commit
+git diff 8062da0  c79b2d29d -> compares two commits
+
+git ls-files -> shows all files tracked by git
 
 git blame filename -> tell us which person, and more importantly which commit, is to blame for the currentstate of each line in the file 
 
