@@ -1,4 +1,5 @@
 //Fast-fordward -> When you merge your branch with master and we haven't done any additional work in master before doing the merge
+//Rebase -> move changes done in master to a branch created before that changes were done, (1. checkout other branch, and git rebase master would move the changes to the other branch)
 
 git -> show all option
 git init -> Starts an empty repository
