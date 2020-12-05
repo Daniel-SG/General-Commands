@@ -1,7 +1,9 @@
+//Fast-fordward -> When you merge your branch with master and we haven't done any additional work in master before doing the merge
+
 git -> show all option
 git init -> Starts an empty repository
 
-git log -> historic of commits (git log --all --graph --decorate)
+git log -> historic of commits (git log --all --graph --decorate --oneline)
 git log --oneline -S Alice -> contains the commits that have "Alice" in the commit message
 git log 61966bf.. chapter1.txt -> shows the commits after that one related to chapter1.txt file
 git log --grep -i 'big changes' commits that contains 'big changes' phrase in the commit message (-i case insensitively)
@@ -9,6 +11,10 @@ git log --grep -i 'big changes' commits that contains 'big changes' phrase in th
 git checkout commit_id -> Retrieves the files from that commit_id
 git checkout -f master -> Same as git checkout but overwriting the files that had been modified
 git checkout . -> reeplaces all from the working directory with files from the last commit
+
+git branch -a -> List all branches
+git branch -m oldnamebranch newnamebranch -> Rename a Branch
+git branch -d branchName -> delete the branch
 
 git pull -> git fetch + git merge
 
