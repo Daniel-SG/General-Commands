@@ -17,6 +17,8 @@ git branch -a -> List all branches
 git branch -m oldnamebranch newnamebranch -> Rename a Branch
 git branch -d branchName -> delete the branch
 
+git merge anotherBranch -m"commit message" -> being in master we can run this command to take changes from anotherBranch merge them and make a commit
+
 git pull -> git fetch + git merge
 
 git push origin master //origin is the copy of our repository 
@@ -35,6 +37,9 @@ git add -A -> see changes when files have been renamed or deleted and add them i
 git stash -> caches the files and put back the original files based on the last commit, if there are new files, they are NOT added
 git stash -u -> Adds the new files in the cache area
 git stash pop -> Put back the files that were in the cache area
+git stash newbranch -> 1. creates "newbranch" branch 2. moves the files stashed to the new branch
+git stash list -> shows the stashed files 
+git stash clear -> empty the list of stashes
 
 git commit --verbose to see the changes you are committing in your editor
 git commit -am  -- git add. + git commit -m in one single command (does not add new files)
