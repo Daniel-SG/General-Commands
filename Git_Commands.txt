@@ -48,6 +48,10 @@ git show c7d5d6876 gives you the detail of a commitgit log --oneline shows only 
 git show e420911~1 gives us the parent commit from e420911
 git show :/Second as before but with commit message
 
+git tag myTag --> Adds a tag in the current branch, ypu can see the tag running git log --oneline --decorate --graph --all
+git tag --list --> show all tags
+git tag --delete myTag --> delete myTag tag
+
 
 git diff -> compare changes between the working directory and the staging area
 git diff -- filename.txt compare changes between the working directory and the staging area for filename.txt file
