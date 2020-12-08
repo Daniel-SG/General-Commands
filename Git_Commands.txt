@@ -64,12 +64,11 @@ git blame filename -> tell us which person, and more importantly which commit, i
 
 git grep Alice 3ba3f98~1 -> commits of files that contain Alice and are before that commit
 
-git revert 3ba3f98 -> reviert that commit and clear the working directory
+git revert 3ba3f98 -> revert that commit and clear the working directory
 
 git reset -> it is the opposite operation as git add (delete from stage)
-git reset commitid -> will clear the index, and roll the repository back to that revision, as if the subsequent commits had never happened. It won’t change the                         working directory, so the current state of our files won’tbe lost, but the history of how we got to that state will be
 git reset --soft HEAD^ -> This has the effect of undoing the commit, taking us back to just before we made it. Note it leaves our changes staged in the index.
-git reset --hard -> clear the index and change the working directory
+git reset --hard commit_id -> clear the index and change the working directory
 
 git config --global alias.sla 'log --oneline --decorate --graph --all' -> to add an alias,git sla = git log --oneline --decorate --graph --all
 
