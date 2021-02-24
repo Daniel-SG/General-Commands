@@ -1,0 +1,86 @@
+--SQOOP
+hadoop credential create ocean_adminmask.password -provider jceks://hdfs/ocean/application/uat/etl-base/bash/scripts/OCEAN_adminmask.jceks
+
+
+sqoop eval \
+-Dhadoop.security.credential.provider.path=jceks://hdfs/ocean/application/u/etl-base/bash/scripts/OCEAN_adminmask.jceks \
+--connect "jdbc:oracle:thin:@//10.105.76.130:1521/OCEANHTA" \
+--username "OCEAN" \
+--password-alias "ocean_adminmask.password" -e "select sysdate from dual"
+
+
+ sqoop import \
+--connect jdbc:mysql://localhost/dualcore \
+--username training --password training \
+--fields-terminated-by '\t' \
+--warehouse-dir /dualcore \   -> Root folder
+--table employees
+
+sqoop import 
+--connect jdbc:mysql://localhost/dualcore 
+--username training --password training 
+--table customers 
+--target-dir /test/customers  --> Exact path where to store the data
+--fields-terminated-by '\t'   --> Delimiter in HDFS
+--as-parquetfile
+
+sqoop import 
+--connect jdbc:mysql://localhost/dualcore 
+--username training --password training 
+--table order_details 
+--warehouse-dir /test/  
+--fields-terminated-by '\t' 
+--split-by order_id -- When there is no PK you have to select one atribute or write -m 1
+
+sqoop import \
+--connect jdbc:mysql://localhost/dualcore \
+--username training \
+--password training \
+--fields-terminated-by '\t' \
+--table employees \
+--hive-import \   -- Crea la tabla en hdfs e importa el contenido
+--hive-database default \
+--hive-table employees
+--null-string '\\N' \ --> Si hay nulos en la base de datos, los ponemos como nulo en hdfs
+--null-non-string
+
+sqoop export \
+--connect jdbc:mysql://localhost/dualcore \
+--username training --password training \
+--table empleados \ -- La tabla debe existir en mysql
+--input-fields-terminated-by '\t' \  -- Importante sino falla, es el separador que hay en hdfs para los campos
+--export-dir /test/employees -- Es la ruta de hdfs si hay un error al exportar, consultar el log del hue de yarn http://localhost:8088/cluster
+
+-- Import only specified columns from products table with where clause
+$ sqoop import \
+--connect jdbc:mysql://localhost/company \
+--username jdoe --password bigsecret \
+--table products \
+--warehouse-dir /mydata \
+--columns "prod_id,name,price" \
+--where "price >= 1000"
+
+
+--SQOOP INCREMENTAL append
+sqoop import \
+--connect jdbc:mysql://localhost/company \
+--username jdoe --password bigsecret \
+--table orders \
+--query \
+'SELECT id,SYSMODTIME FROM schema.table where $CONDITIONS' \
+--warehouse-dir /mydata \
+--incremental append \
+--check-column order_id \
+--last-value 6713821
+
+--SQOOP INCREMENTAL lastmodified
+sqoop import \
+--connect jdbc:mysql://localhost/company \
+--username jdoe --password bigsecret \
+--table shipments \
+--query \
+"SELECT id,'SYSMODTIME' FROM schema.table where \$CONDITIONS" \
+--warehouse-dir /mydata \
+--incremental lastmodified \
+--check-column last_update_date \
+--last-value "2016-12-21 05:36:59"
