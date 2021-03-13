@@ -1,0 +1,38 @@
+AWS
+Certification ->SAA-C02
+
+AWS REGIONS
+us-east-1
+	each regions has Availability Zones(AZ) (us-east-1 a,us-east-1 b...) those are physical data centers in the region
+
+IAM (Identity and Access Management)
+
+	Users -> Usually Physical Person
+	Groups -> Function (admin,devops,engineering)
+	Roles -> Internal usage within AWS resources
+	Policies -> Define what Users,groups and Roles can and can't do (JSON document)
+
+AMIs (Amazon Machine Image)
+- There are many pre-built and you can create your own Image
+- Your own Image can only work in your specific AWS Region by default, although can be changed
+- You can use AMI's other people, even rent them per hour
+- They are found in Amazon Market Place
+- May content malware!
+- They live in S3
+- The same AMIID cannot be used in other regions
+You can share an AMI with another AWS account.
+- Sharing an AMI does not affect the ownership of the AMI.
+- If you copy an AMI that has been shared with your account, you are the owner of the target AMI in
+your account.
+- To copy an AMI that was shared with you from another account, the owner of the source AMI must
+grant you read permissions for the storage that backs the AMI, either the associated EBS snapshot
+(for an Amazon EBS-backed AMI) or an associated S3 bucket (for an instance store-backed AMI).
+- Limits:
+	• You can't copy an encrypted AMI that was shared with you from another account. Instead, if the
+		underlying snapshot and encryption key were shared with you, you can copy the snapshot while reencrypting
+		int with a key of your own. You own the copied snapshot, and can register it as a new AMI.
+
+	• You can't copy an AMI with an associated billingProduct code that was shared with you from another
+	account. This includes Windows AMIs and AMIs from the AWS Marketplace. To copy a shared AMI
+	with a billingProduct code, launch an EC2 instance in your account using the shared AMI and then
+	create an AMI from the instance.

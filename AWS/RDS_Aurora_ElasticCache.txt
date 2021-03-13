@@ -1,0 +1,112 @@
+AWS DATABASES
+RDS
+	- RDS (MySQL,PostgreSQL,Oracle SQL)
+		Must provision EC2 instance & EBS but you CAN NOT make SSH
+		Monitoring through CloudWatch, sends data to cloudwatch every minute
+		High availability, Reliability, supports multi AZ (can read from replicas but writes only in 1)
+		Cost based on provisioned EC2 and EBS
+		2/3 minutes to recover from a failover
+		Storage autoscaling
+		High troughput low latency
+		Automated backups (it has transaction logs every 5 min, retention up to 35 days)
+		Manual Snapshots
+		Read Replicas: 
+			- Up to 5 read replicas instances  to read
+			- Replication is ASYNC so reads are eventually consistent (not updated at the same moment)
+			- Replicas can become their own database
+			- The replicas are used to other process read from them (no write or update)
+			- If the replica is in a different Availability Zone, we are going to be charged by the network cost. (it'sfree within the same AZ)
+			- For disaster recovery we have our replica ina different AZ with SYNC replication and with the same DNS so no human intervention is needed
+		RDS Security
+			At rest encryption:
+			- Possibility to encrypt master and read replicas with KMS - AES 256 encryption
+			- Encryption has to be defined at launch time
+			- or unecrypted db =>snapshote=> copy snapshot as encrypted=>create db from snapshot
+			- if the master is not encrypted the replicas cannot be encrypted
+			in-flight encryption:
+			- SSL certificate
+			
+			
+
+Aurora (PostgreeSQL,MySQL)
+		Aurora is a proprietary technology from AWS (not open sourced)
+ 		Postgres and MySQL are both supported as Aurora DB (that means your drivers will work as if Aurora was a Postgres or MySQL database)
+		Aurora is “AWS cloud optimized” and claims 5x performance improvement over MySQL on RDS, over 3x the performance of Postgres on RDS
+ 		Aurora storage automatically grows in increments of 10GB, up to 64 TB.
+		Aurora can have 15 replicas while MySQL has 5, and the replication process is faster (sub 10 ms replica lag)
+		Failover in Aurora is instantaneous. It’s HA (High Availability) native.
+		Aurora costs more than RDS (20% more) – but is more efficient
+    Aurora High Availability and Read Scaling:
+    • 6 copies of your data across 3 AZ:
+    • 4 copies out of 6 needed for writes
+    • 3 copies out of 6 need for reads
+    • Self healing with peer-to-peer replication
+    • Storage is striped across 100s of volumes
+    • One Aurora Instance takes writes (master)
+    • Automated failover for master in less than 30 seconds
+    • Master + up to 15 Aurora Read Replicas serve reads
+    • Support for Cross Region Replication
+    Features of Aurora:
+    • Automatic fail-over
+    • Backup and Recovery
+    • Isolation and security
+    • Industry compliance
+    • Push-button scaling
+    • Automated Patching with Zero Downtime
+    • Advanced Monitoring
+    • Routine Maintenance
+    • Backtrack: restore data at any point of time without using backups
+    • Same security as RDS
+    Aurora Serverless
+    • Automated database instantiation and autoscaling based on actual usage
+    • Good for infrequent,intermittent or unpredictable workloads
+    • No capacity planning needed
+    • Pay per second, can be more cost-effective
+    Global Aurora
+    • Aurora Cross Region Read Replicas:
+    • Useful for disaster recovery
+    • Simple to put in place
+    • Aurora Global Database (recommended):
+    • 1 Primary Region (read / write)
+    • Up to 5 secondary (read-only) regions, replication lag is
+    less than 1 second
+    • Up to 16 Read Replicas per secondary region
+    • Helps for decreasing latency
+    • Promoting another region (for disaster recovery) has an RTO of < 1 minute
+
+
+ElasticSearch
+
+it's a serch engine where you can add documents and index them, it's spread across many clusters
+• Fully-managed (but not serverless) 
+• Scale up or down without downtime 
+• But this isn’t automatic 
+• Pay for what you use 
+• Instance-hours, storage, data transfer 
+• Network isolation 
+• AWS integration 
+	• S3 buckets (via Lambda to Kinesis) 
+	• Kinesis Data Streams 
+	• DynamoDB Streams 
+	• CloudWatch / CloudTrail 
+	• Zone awareness
+• Dedicated master node(s) 
+• Choice of count and instance types 
+• “Domains” 
+• Snapshots to S3 
+• Resource-based policies 
+• Identity-based policies 
+• IP-based policies 
+• Request signing 
+• VPC 
+• Cognito
+
+Amazon ES anti-patterns
+• OLTP 
+	• No transactions 
+	• RDS or DynamoDB is better 
+• Ad-hoc data querying 
+	• Athena is better 
+• Remember Amazon ES is primarily for search & analytics
+
+

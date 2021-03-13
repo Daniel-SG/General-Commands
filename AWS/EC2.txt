@@ -1,0 +1,77 @@
+EC2 
+ - Instance of a virtual machines in AWS
+ - In the security groups you can define inbound and outbound traffic
+ - Elastic IP allows to keep the same public IP even you you stop and start your EC2 instance
+ - If you want to launch an script when starting the instance, you have to add it in the "Advanced Detais -> User Data" when configuring the instance
+ - EC2 Hibernate 
+ 	- only for On Demand and Reserved Instances
+ 	- Max hibernation of 60 days
+ 	- Instance RAM size les 150 GB
+ 	- Not all instances are avaiable to Hibernate (only C,R,M)
+ 	- it is found in Configure Instance under the name Stop Hibernate behaviour, select the checkbox
+
+Types of EC2
+	 On demand: Pay for what you use
+	  - They are the most expesive
+	  - Recommended for short terms and interrupted workloads
+
+	Reserved instances
+	 - from 1 to 3 years
+	 - payment upfront
+	 - 75% discount compared to On demand
+	 - There are other subtypes like..
+	 	- Convertible Reserved instance: Can change the EC2 instance type, up to 54% discount
+	 	- Scheduled Reserved instance: Launch within the time window you reseve (1 hour a day, from 15:00 to 18:00 etc)
+
+	Spot Instances
+		- 90% discount
+		- You can lose the instance at any time if your max price is less than the current spot price
+		- Useful for jobs that can be rerun (batch process, image rendering...)
+		- If your spot is claimed you can block it from 1 to 6 hours
+		- If you cancel a spot request, the spot instance is not cancelled, you have to do it manually
+		Spot Fleets
+			- Define possible launch pools and launch the one that fits better according the strategy choosen (lowestPrice,diversified,capacityOptimized)
+
+	Dedicated Host
+		- Physical dedicated host for your use (not shared)
+		- Full control for EC2 instance
+		- 3 years contract
+		- More expensive
+		- Useful to bring your own licensed software
+
+	Dedicated Instance
+		- Instances running hardware that is dedicated to you
+		- May share the hardware with other accounts but only your accounts
+		- No control over instance placement
+
+	There are as well other types of Instances:
+		- R apps that need a lot of RAM
+		- C apps that need good CPU (databases,computational things)
+		- M Medium approach between Ram and CPU (general,Webs)
+		- I Apps that need good I/O (databases)
+		- G Apps that need good GPU (Video rendering, machine learning)
+
+		T2/T3 bustable instances (up to capacity, use credits)
+		T2/T3 unlimeted burst
+		https://www.ec2instances.info/
+
+
+
+Placements groups
+- You can define how your EC2 instances will be set respect the rest of your AWS environment or respect other EC2 instances
+- There are 3 strategies
+	- Cluster: All instances in the same rack (and availability zone) 
+			- Pros: Low latency, high speed netowrk
+			- Cons: If the rack fails, all instances fail at the same time
+			- Use case: Bigdata jobs, apps that need high speed network
+
+	- Spread: Every EC2 instance will be in a different hardware
+			- Pro: Across different availability zones,EC2 instances in a different hardware
+			- Cons: Limited to 7 instances per availability zone
+			- Use case: Apps where max availability is needed and when every instance must be independent from each other
+
+	- Partition: 
+			- Up to 7 partitions per availability zone, in every partition you can add many EC2 instances
+			- Up to 100 EC2 instances
+			- Partition are in a different racks
+			- Use case: HDFS, cassandra, Kafka, HBASE

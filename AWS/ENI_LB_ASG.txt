@@ -1,0 +1,40 @@
+Elastic Network Interface (ENI)
+ - Represents a virtual network card
+ - You can have several private IPs for the same EC2 instance
+ - One or more security groups
+ - They are attached to a specific AZ
+ - They can be moved easily from one EC2 instance to another
+
+Load Balancers
+-There are 3 types
+ 1. Classic load balancer, supports HTTP,HTTPS,TCP.(X-Z, disabled by default and free of charge if used)support only one SSL certificate
+ 2. Application Load Balancer, supports HTTP HTTPS WebSocket (X-Z, Enabled by default and free of charge if used) support several SSL certificates at the same time
+ 	- the instances are divided in target groups
+ 3. Network Load Balancer TCP,TLS, UDP (X-Z, disabled by default and Charge if used)uses SNI
+ 	- is very fast, low latency
+ 	- has one static IP per AZ
+
+ - Load Balancers can be internal (may be accessed from outside) or internal
+ -Troubleshooting:
+ 	- 4xx errors at client side
+ 	- 5xx errors at application side
+ 	- 503 means capacity or application not registered yet
+ 	- all access per request are accesible in the logs
+
+ - Stickyness is used to keep the user always going to the same ec2 instance
+	it may produce overload (EC2->Target Group->yourTG->Edit attributes) 
+- Cross Zone(X-Z) Load Balancing distributes evenly across all instances of AZ, if not activated
+	the request goes inside the same AZ
+- SSL/TLS certificates provide data encription from the client to the load balancer
+- SNI solves the problem of loading multiples SSL certificates onto one web server. Does not work for CLB (classic LB)
+- Connection Draining or Registration Delay is the time to complete request while the instance is unhealthy or deregistered
+- Provide a single point of access for you application DNS (not IP) 
+
+Auto Scaling Group ASG
+- Scale-in or Scale-out EC2 instances according to certain criteria
+- You define min and max capacity and the alarms (in CloudWatch) to trigger the scale-in/out
+- The alarms can be CPU,memory usage or own defined metrics
+- You can schedule scale-in/out at some specific time
+- You cooldown let you add some time before scale-in/out is triggered
+- lifecicle hook is the availability to make some preparations before scaling in/out
+

@@ -1,0 +1,202 @@
+NoSQL key-value databases Like DynamoDB,Riak, Redis , Memcached (Berkeley DB, upscaledb), Project Voldemort and Couchbase.
+https://www.thoughtworks.com/insights/blog/nosql-databases-overview
+
+DynamoDB
+• Fully Managed, Highly available with replication across 3 AZ
+• NoSQL database - not a relational database
+• Scales to massive workloads, distributed database
+• Millions of requests per seconds, trillions of row, 100s of TB of storage
+• Fast and consistent in performance (low latency on retrieval)
+• Integrated with IAM for security, authorization and administration
+• Enables event driven programming with DynamoDB Streams
+• Low cost and auto scaling capabilities
+• Useful for key value data structure
+• It is better to start on Demand and later on Provision Capacity
+• If on demand is too expensive, probably Dynamo is not the best option or you
+
+DynamoDB - Basics
+• DynamoDB is made of tables
+• Each table has a primary key (must be decided at creation time) can be a single column (partition key) or combination (partition key + sort key)
+• Each table can have an infinite number of items (= rows)
+• Each item has attributes (can be added over time – can be null)
+• Maximum size of a item is 400KB
+• Data types supported are:
+• Scalar Types: String, Number, Binary, Boolean, Null
+• Document Types: List, Map
+• Set Types: String Set, Number Set, Binary Set
+
+DynamoDB – Provisioned Throughput
+• Table must have provisioned read and write capacity units per second
+• Eventually Consistent Read (default): If we read just after a write, it's possible we'll get unexpected response because of replication
+• Strongly Consistent Read: If we read just after a write, we will get the correct data
+
+• Read Capacity Units (RCU): throughput for reads ($0.00013 per RCU)
+• 1 RCU = 1 strongly consistent read of 4 KB per second
+• 1 RCU = 2 eventually consistent read of 4 KB per second
+- Example 1: 10 strongly consistent reads per seconds of 4 KB each
+	We need 10 * 4 KB / 4 KB = 10 RCU
+- Example 2: 16 eventually consistent reads per seconds of 12 KB each
+	We need (16 / 2) * ( 12 / 4 ) = 24 RCU
+- Example 3: 10 strongly consistent reads per seconds of 6 KB each
+	We need 10 * 8 KB / 4 = 20 RCU (we have to round up 6 KB to 8 KB)
+	
+• Write Capacity Units (WCU): throughput for writes ($0.00065 per WCU)
+• 1 WCU = 1 write of 1 KB per second
+If the items are larger than 1 KB, more WCU are consumed
+-Example 1: we write 10 objects per seconds of 2 KB each.
+	We need 2 * 10 = 20 WCU
+-Example 2: we write 6 objects per second of 4.5 KB each
+	We need 6 * 5 = 30 WCU (4.5 gets rounded to the upper KB)
+-Example 3: we write 120 objects per minute of 2 KB each
+	We need 120 / 60 * 2 = 4 WCU
+• Option to setup auto-scaling of throughput to meet demand
+• Throughput can be exceeded temporarily using “burst credit”
+• If burst credit are empty, you'll get a “ProvisionedThroughputException”.
+• It's then advised to do an exponential back-off retry
+• Can use DAX accelerator to have faster troughput
+
+DynamoDB - Partitions Internal
+• Each partition:
+	Max of 3000 RCU / 1000 WCU
+	Max of 10GB
+	
+• To compute the number of partitions:
+  By capacity: (TOTAL RCU / 3000) + (TOTAL WCU / 1000)
+  By size: Total Size / 10 GB
+ Total partitions = CEILING(MAX(Capacity, Size))
+ 
+• WCU and RCU are spread evenly between partitions
+
+
+DynamoDB - Writing Data
+• PutItem Write data to DynamoDB (create data or full replace) Consumes WCU
+• UpdateItem Update data in DynamoDB (partial update of attributes)
+   Possibility to use Atomic Counters and increase them
+• Conditional Writes:
+  Accept a write / update only if conditions are respected, otherwise reject
+  Helps with concurrent access to items
+  No performance impact
+  
+DynamoDB - DeleteItem
+• Delete an individual row
+    Ability to perform a conditional delete
+    
+• DeleteTable
+  Delete a whole table and all its items
+  Much quicker deletion than calling DeleteItem on all items
+  
+DynamoDB Reading Data
+•GetItem :
+  Read based on Primary key
+  Primary Key = HASH or HASH RANGE
+  Eventually consistent read by default
+  Option to use strongly consistent reads (more RCU might take longer)
+  ProjectionExpression can be specified to include only certain attributes
+  
+•BatchGetItem
+  Up to 100 items
+  Up to 16 MB of data
+  Items are retrieved in parallel to minimize latency
+  
+DynamoDB - Batching Writes
+•BatchWriteItem
+  Up to 25 PutItem and / or DeleteItem in one call
+  Up to 16 MB of data written
+  Up to 400 KB of data per item
+  Batching allows you to save in latency by reducing the number of API calls done against DynamoDB
+  Operations are done in parallel for better efficiency
+  It’s possible for part of a batch to fail, in which case we have the try the failed items (using exponential back off algorithm)
+  
+DynamoDB Query
+•Query returns items based on:
+  PartitionKey value ( must be = operator)
+  SortKey value (=, <, <=, >, >=, Between, Begin) optional
+  FilterExpression to further filter (client side filtering)
+  
+•Returns:
+  Up to 1 MB of data
+  Or number of items specified in Limit
+  Able to do pagination on the results
+  Can query table, a local secondary index, or a global secondary index
+  
+DynamoDB Scan
+  Scan the entire table and then filter out data (inefficient)
+  Returns up to 1 MB of data use pagination to keep on reading
+  Consumes a lot of RCU
+  Limit impact using Limit or reduce the size of the result and pause
+  
+  For faster performance, use parallel scans
+  Multiple instances scan multiple partitions at the same time
+  Increases the throughput and RCU consumed
+  Limit the impact of parallel scans just like you would for Scans
+  Can use a ProjectionExpression + FilterExpression (no change to RCU)
+  
+DynamoDB LSI (Local Secondary Index)
+• Up to five local secondary indexes per table.
+• The attribute that you choose must be a scalar String, Number, or Binary
+• LSI must be defined at table creation time
+• Local indexes come with the constraint that all the records that share the same partition key need to fit in 10 GB, 
+  and once that allocation gets exhausted, all writes with that partition key will start failing. Unless you know for sure that you won’t ever 
+  exceed this limit, we recommend avoiding local indexes
+  
+DynamoDB GSI (Global Secondary Index)
+• To speed up queries on non key attributes, use a Global Secondary Index
+• GSI = partition key + optional sort key
+• The index is a new table and we can project(add) attributes(columns) on it
+• The partition key and sort key of the original table are always projected(added) (KEYS_ONLY)
+• Can specify extra attributes to project (INCLUDE)
+• Can use all attributes from main table (ALL)
+• Must define RCU / WCU for the index
+• Possibility to add / modify GSI (not LSI)
+• Global indexes don’t constrain your table size in any way, the downside is if the provisioned throughput of a global index happens to be insufficient
+  to keep up with updates on the main table, the internal queue can get full and then all operations will fail
+
+
+DynamoDB - DAX
+• DAX = DynamoDB Accelerator
+• Seamless cache for DynamoDB
+• Writes go through DAX to DynamoDB
+• Micro second latency for cached reads & queries
+• Solves the Hot Key problem (too many reads)
+• 5 minutes TTL for cache by default (time to keep the data)
+• Up to 10 nodes in the cluster
+• Multi AZ (3 nodes minimum recommended for production)
+• Secure (Encryption at rest with KMS, VPC, IAM, CloudTrail…)
+
+DynamoDB Streams
+• Changes in DynamoDB (Create, Update,Delete) can end up in a DynamoDB Stream (Like a log)
+• This stream can be read by AWS Lambda or Kinesis, and we can then do:
+ • React to changes in real time (welcome emailto new users)
+ • Create derivative tables / views
+ • Insert into ElasticSearch
+ • Could implement Cross Region Replicationusing Streams
+• Stream has 24 hours of data retention
+• Configurable batch size (up to 1,000 rows,6 MB)
+
+DynamoDB TTL (Time to Live)
+• TTL = automatically delete an item after an expiry date / time
+• TTL is provided at no extra cost, deletions do not use WCU / RCU
+• TTL is a background task operated by the DynamoDB service itself
+• Helps reduce storage and manage the table size over time
+• Helps adhere to regulatory norms
+• TTL is enabled per row (you define a TTL column, and add a date there)
+• DynamoDB typically deletes expired items within 48 hours of expiration
+• Deleted items due to TTL are also deleted in GSI / LSI
+• DynamoDB Streams can help recover expired items
+
+DynamoDB - Security & Other Features
+•VPC Endpoints available to access DynamoDB without internet
+•Access fully controlled by IAM
+•Encryption at rest using KMS
+•Encryption in transit using SSL / TLS
+•Backup and Restore feature available
+•Point in time restore like RDS
+•No performance impact
+•Global Tables
+•Multi region, fully replicated, high performance
+•Amazon Database Migration Service (DMS) can be used to migrate to DynamoDB (from Mongo, Oracle, MySQL, S3, etc
+•You can launch a local DynamoDB on your computer for development purposes
+
+DynamoDB – Storing large objects
+• Max size of an item in DynamoDB = 400 KB
+• For large objects, store them in S3 and reference them in DynamoDB

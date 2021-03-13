@@ -1,0 +1,46 @@
+S3
+- buckets are defined at a region level
+- must start with lower case or number
+- must use multipart upload if file bigger than 5gb
+- you can version the files uploaded and when you delete them, they are marked as deleted but the files are there
+
+S3 Encryption (4 types)
+	- SSE-S3 Encryption using keys handled and managed by AWS, encryption server side
+		uses AES-256 encryption
+		you must set the header "x-amz-server-side-encryption":"AES256"
+	- SSE-KMS: Encryption using keys handled and managed by KMS
+		you must set the header "x-amz-server-side-encryption":"aws:kms" and have control over
+		the rotation policy
+	- SSE-C: server-side encryptopn using keys fully managed bu the customer
+		AWS makes the encryption but does not store the file
+		HTTPS must be used when sending the file and the key
+	- Client Side Encryption
+		Client library such Amazon S3 Encruption CLient must be used
+		Client must encrypt data before sending and decrypt when receiveing
+		Customer fully manages the keys and encryption cycle
+	-Other: HTTPS enpoint is called encryption in flight and encrytion in flight is also called SSL/TLS
+
+S3 Security
+- it has VPC endpoints, it allows conection to the bucket without internet
+- it has logs
+- it has MFA
+- you can use Signed URLs that are valid for a limited time, and for certain users
+
+S3 Bucket policies
+-it is a json that contains..
+ Resources: buckets and objects the policy will applied to
+ Actions: Set of API to allow or deny
+ Effect: Allow or Deny
+ Principal: The account or user to apply the policy to
+
+S3 CORS (Cross Origin Resource Sharing)
+- It is used to share data with other S3 bucket
+- you can limit the amount of data shared
+
+S3 Consistency Model
+- Read after consistency PUTS of new objects
+	* as soon as an object is written we can retrieve it
+	* execpt if we did a get before to see if the object existed, then it takes a while
+- Eventual consustency for DELETES and PUTS of existing objects
+    * if we read an object after updating we might get the old version
+    *  if we delete an object we might still be able to retrieve it for a short time

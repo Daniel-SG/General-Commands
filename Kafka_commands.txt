@@ -1,0 +1,115 @@
+KAFKA
+- brokers are like servers to kafka
+- when connected to any bootstrap-server (broker) you will be connected to the entire cluster (called kafka broker discovery)
+- topics are divided into partitions and partitions are splited into different brokers
+- only one broker can be a leader for a given partition, only that leader can receive and serve data for a partition, the other brokers will sync the data
+- producers can send a key with the message, if so all messages with the same key will go to the same partition
+- Messages are appended to a topic-partition in the order they are sent
+- Consumers read messages in the order stored in a topic-partition
+
+CONSUMERS
+- consumers read data in order trough each partition
+- consumers know which broker read from
+- each consumer within a group read exclusive partitions (2 consumers inside the same group don't read the same data)
+- if you gave more consumers than partitions, some consumers will be inactive
+- Inside a consumer group --from-beginning gives you the last position from the offset, not the position 0 (so, it does not work)
+
+PRODUCERS
+
+ACKS=0 -> No response is requested from the brokers once producers send data. If the broker goes offline or there is an 
+		exception, we will lose data
+ACKS=1 -> (default) Leader response is requested but replication is not guarantee, if an ack is not received, the producer may retry.
+		if the leader broker goes offline but the replicas haven't replicated the data yet, we have data loss
+
+ACKS=ALL -> The producer waits for the acknowledge of the Leader + replicas, is the most secure method to avoid data loss but it is slower.
+		it has to be used with min.insunc.replicas
+
+IDEMPOTENT PRODUCERS-> Prevent the creation of duplicates in the consumers because of network errors.
+
+
+
+
+ZOOKEEPER
+- zookeeper manage the brokers, helps in performing leader election for partitions, inform kafka about new topics, broker changes etc
+- zookeeper operates with odd number of servers (3,5,7..) it has a leader as well, and the rest of servers are followers
+
+
+TOPICS
+./bin/kafka-topics --bootstrap-server localhost:9092 --topic first_topic --create --partitions 3  --replication-factor 1  	--> Create a topic
+./bin/kafka-topics.sh --zookeeper zk-02.wbe-04.traveljigsaw.com:2181/kafka/ams --list                                     	--> List all topics
+./bin/kafka-topics.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --list | sort 	--> List all Kafka topics sorted
+./bin/kafka-topics.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --topic web-impression --describe --> Show partitions for a topic
+./bin/kafka-topics --bootstrap-server localhost:9092 --topic second_topic --delete	--> Delete a topic
+
+PRODUCERS
+./bin/kafka-console-producer --broker-list localhost:9092 --topic first_topic		--> Add messages to a topic
+./bin/kafka-console-producer.sh --broker-list kafka-11.lhr4.traveljigsaw.com:9093 --topic testTopic < othertopic.json 		--> Add message from a file to a topic
+
+
+CONSUMERS
+./bin/kafka-console-consumer --bootstrap-server localhost:9092 --topic first_topic	--> Read a topic from the current offset
+./bin/kafka-console-consumer --bootstrap-server localhost:9092 --topic first_topic --from-beginning                         --> Read a topic from the beginning
+./bin/kafka-console-consumer --bootstrap-server localhost:9092 --topic first_topic --max-messages 5                         --> Read 5 messages from that topic
+./bin/kafka-console-consumer --bootstrap-server localhost:9092 --topic first_topic --group first-consumer-group		--> Read from a topic for a group
+
+CONSUMER GROUPS
+./bin/kafka-consumer-groups --bootstrap-server localhost:9092 --list 		--> Show list of consumer groups
+./bin/kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group first-consumer-group	--> Describe the consumer group with the offsets
+
+		GROUP                TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG           
+		first-consumer-group first_topic     0          12              13              1              
+		first-consumer-group first_topic     1          10              12              2             
+		first-consumer-group first_topic     2          10              12              2              
+
+		* CURRENT-OFFSET last offset read by the consumers
+		* LOG-END-OFFSET offset of the last message in each partition
+		* LAG messages pending to be consumed
+
+./bin/kafka-consumer-groups --bootstrap-server localhost:9092 --group first-consumer-group \
+   		--reset-offsets --shift-by 5 --topic first_topic																	--> Add 5 positions the offset in each partition
+
+./bin/kafka-consumer-groups --bootstrap-server localhost:9092 --group first-consumer-group \
+		--reset-offsets --to-earliest --topic first_topic																	--> Reset the offset to the beginning for a group
+
+./bin/kafka-consumer-groups --bootstrap-server localhost:9092 --group first-consumer-group  \
+  		--reset-offsets --to-offset  3 --topic first_topic																	--> Specified the same offset for all partitions	
+
+
+./bin/kafka-topics.sh --zookeeper zk-04.wbe-02.traveljigsaw.com:2181/kafka/ams --alter --topic eventlogger-experiment --partitions 24	Set the number of partitions for a topic
+./bin/kafka-topics.sh --zookeeper zk-04.wbe-02.traveljigsaw.com:2181/kafka/ams --topic AllCars --alter --config retention.ms=259200000
+Set retention for a topic to 3 days
+./bin/kafka-topics.sh --zookeeper zk-04.wbe-02.traveljigsaw.com:2181/kafka/ams --topic AllCars --alter --config retention.ms=604800000
+Set retention for a topic to 7 days
+./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
+List all consumer groups in LHR
+./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list | grep -v valve
+List all consumer groups in AMS excluding the valves
+./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group KafkaTopicSparkStreamImporter_LHR_60s	Display all the offsets for a consumer group in LHR
+./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group KafkaTopicSparkStreamImporter_AMS_60s	Display all the offsets for a consumer group in AMS
+./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group KafkaTopicSparkStreamImporter_AMS_60s | awk '{ if ($1 != "TOPIC" && $1 != "") arr[$1] += $5 } END { for (i in arr) { print i, arr[i] }}' | sort	Sum the lag for all topics in a consumer group in AMS
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic web-search-display-message --max-messages 10	Collect some messages
+nohup ./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic web-search-display-message > /var/web-search-display-message.output &	Collect some messages to a file in the background
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic web-search-display-message | jq '.seed'	Extract the seed field from a topic
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic web-algorithmInfo --from-beginning --consumer.config ~/consumer.properties > /var/web-algorithmInfo_LHR.output	Consume using a specific group ID, from beginning of the topic
+Group ID is specified in consumer.properties:
+group.id=slackm_oneoff
+
+./bin/kafka-configs.sh --zookeeper zk-04.wbe-02.traveljigsaw.com:2181/kafka/ams --entity-type topics --entity-name web-algorithmInfo --describe	New style way of getting Kafka config
+./bin/kafka-configs.sh --zookeeper zk-04.wbe-02.traveljigsaw.com:2181/kafka/ams --entity-type topics --entity-name web-algorithmInfo --alter --add-config max.message.bytes=2097152	New style way of setting Kafka config
+./bin/kafka-topics.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --describe | awk '{ parts[length($8)", "$5$6" "$7$8" "$9""$10]++ } END { for (part in parts) print part, parts[part] }' | sort | column -t	List all combinations of leaders, replicas and in-sync replicas
+./bin/kafka-topics.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --alter --topic AllCars --partitions 24	Change the number of partitions for a topic
+./bin/kafka-preferred-replica-election.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr
+Rebalance the cluster
+./bin/kafka-topics.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --describe | awk -F "[\t:=]" '{ if ($1 == "Topic" && $6 < 3) print $2 }'	List all topics with less than 3 partitions
+./bin/kafka-reassign-partitions.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --topics-to-move-json-file ~/topics.json --broker-list 5,7,9 --generate	Generate a new partition assignment
+./bin/kafka-reassign-partitions.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --reassignment-json-file ~/rebalance.json --execute
+./bin/kafka-reassign-partitions.sh --zookeeper zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr --reassignment-json-file ~/rebalance.json --verify	Increase/verify the number of partitions
+./kafka_consume_topic_LHR.sh eventlogger-visit | sed  's/\x0//g' | ~/jq-linux64 '{session: .session, hostname: .rq | select(.hostname=="as-439.lhr4.traveljigsaw.com") | .hostname}'
+Consume from a kafka topic, filter a specific field and output some sections of the event
+./bin/zookeeper-shell.sh zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr ls /brokers/ids
+Display the broker ids for the LHR cluster
+./bin/zookeeper-shell.sh zk-01.wbe-01.traveljigsaw.com:2181/kafka/lhr get /brokers/ids/11
+Display information such as host name and port for broker id 11
+
+
+

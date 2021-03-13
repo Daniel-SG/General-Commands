@@ -1,0 +1,614 @@
+AWS
+
+AWS Bills
+to see where have you spent money Bills -> Bill
+
+AWS REGIONS
+us-east-1
+	each regions has Availability Zones(AZ) (us-east-1 a,us-east-1 b...) those are physical data centers in the region
+
+IAM (Identity and Access Management)
+
+	Users -> Usually Physical Person
+	Groups -> Function (admin,devops,engineering)
+	Roles -> Internal usage within AWS resources
+	Policies -> Define what Users,groups and Roles can and can't do (JSON document)
+
+IAM Federation -> For large enterprises who con login into AWS with their company account
+
+To use apps like EC2 using CLI you must create an IAM Role and assign EC2 to it, then when you are in the CLI you can make aws s3 ls
+and you will be able to see all the buckets
+
+AMIs (Amazon Machine Image)
+- There are many pre-built and you can create your own Image
+- Your own Image can only work in your specific AWS Region by default, although can be changed
+- You can use AMI's other people, even rent them per hour
+- They are found in Amazon Market Place
+- May content malware!
+- They live in S3
+- The same AMIID cannot be used in other regions
+You can share an AMI with another AWS account.
+- Sharing an AMI does not affect the ownership of the AMI.
+- If you copy an AMI that has been shared with your account, you are the owner of the target AMI in
+your account.
+- To copy an AMI that was shared with you from another account, the owner of the source AMI must
+grant you read permissions for the storage that backs the AMI, either the associated EBS snapshot
+(for an Amazon EBS-backed AMI) or an associated S3 bucket (for an instance store-backed AMI).
+- Limits:
+	• You can't copy an encrypted AMI that was shared with you from another account. Instead, if the
+		underlying snapshot and encryption key were shared with you, you can copy the snapshot while reencrypting
+		int with a key of your own. You own the copied snapshot, and can register it as a new AMI.
+
+	• You can't copy an AMI with an associated billingProduct code that was shared with you from another
+	account. This includes Windows AMIs and AMIs from the AWS Marketplace. To copy a shared AMI
+	with a billingProduct code, launch an EC2 instance in your account using the shared AMI and then
+	create an AMI from the instance.
+
+Elastic Network Interface (ENI)
+ - Represents a virtual network card
+ - You can have several private IPs for the same EC2 instance
+ - One or more security groups
+ - They are attached to a specific AZ
+ - They can be moved easily from one EC2 instance to another
+
+Load Balancers (ELB)
+Redirect the traffic to different EC2 instances
+-Makes health checks to check which instances are available and redicret the traffic accordingly
+-There are 3 types
+ 1. Classic load balancer, supports HTTP,HTTPS,TCP.(X-Z, disabled by default and free of charge if used)support only one SSL certificate
+ 2. Application Load Balancer, supports HTTP HTTPS WebSocket (X-Z, Enabled by default and free of charge if used) support several SSL certificates at the same time
+ 	- the instances are divided in target groups
+	- ALBs are reverse proxies that sit between the internet and your application. Every request to your application gets handled by the load balancer first. 
+The load balancer then makes another request to your application and finally forwards the response from your application to the caller.
+ 3. Network Load Balancer TCP,TLS, UDP (X-Z, disabled by default and Charge if used)uses SNI
+ 	- is very fast, low latency
+ 	- has one static IP per AZ
+	-behave like load balancers, but they work by routing network packets rather than by proxying HTTP requests. it's more like a sophisticated network router.
+	 Our recommendation is to consider using an NLB first, since it offers the peace of mind of not having to worry about any obscure capacity limits. 
+	 The fact that it’s also faster and less expensive is a nice bonus.
+
+ - Load Balancers can be internal (may be accessed from outside) or internal
+ -Troubleshooting:
+ 	- 4xx errors at client side
+ 	- 5xx errors at application side
+ 	- 503 means capacity or application not registered yet
+ 	- all access per request are accesible in the logs
+
+ - Stickyness is used to keep the user always going to the same ec2 instance
+	it may produce overload (EC2->Target Group->yourTG->Edit attributes) 
+- Cross Zone(X-Z) Load Balancing distributes evenly across all instances of AZ, if not activated
+	the request goes inside the same AZ
+- SSL/TLS certificates provide data encription from the client to the load balancer
+- SNI solves the problem of loading multiples SSL certificates onto one web server. Does not work for CLB (classic LB)
+- Connection Draining or Registration Delay is the time to complete request while the instance is unhealthy or deregistered
+- Provide a single point of access for you application DNS (not IP) 
+
+Auto Scaling Group ASG
+- Scale-in or Scale-out EC2 instances according to certain criteria
+- You define min and max capacity and the alarms (in CloudWatch) to trigger the scale-in/out
+- The alarms can be CPU,memory usage or own defined metrics
+- You can schedule scale-in/out at some specific time
+- You cooldown let you add some time before scale-in/out is triggered
+- lifecicle hook is the availability to make some preparations before scaling in/out
+- Therefore, the first question you should ask yourself is: are your EC2 costs high enough that any reduction in usage will be materially significant? As a thought
+experiment, consider if your EC2 bill were to go down by 30%—would that be a big deal for your business? If not,the effort and complexity of getting Auto Scaling working
+properly is probably not going to be worth it. You might as well just keep the extra headroom during off-peak periods and let it work for you in case of an emergency
+ 
+The other thing to consider is: does your EC2 demand vary enough for Auto Scaling to even matter? If the fluctuations are not significant, or they are too abrupt, or
+they are not very smooth, Auto Scaling will almost certainly not work well for you.
+
+
+
+
+EC2 
+ - Instance of a virtual machines in AWS
+ - In the security groups you can define inbound and outbound traffic
+ - Elastic IP allows to keep the same public IP even you you stop and start your EC2 instance
+ - If you want to launch an script when starting the instance, you have to add it in the "Advanced Detais -> User Data" when configuring the instance
+ - EC2 Hibernate 
+ 	- only for On Demand and Reserved Instances
+ 	- Max hibernation of 60 days
+ 	- Instance RAM size les 150 GB
+ 	- Not all instances are avaiable to Hibernate (only C,R,M)
+ 	- it is found in Configure Instance under the name Stop Hibernate behaviour, select the checkbox
+
+Types of EC2
+	 On demand: Pay for what you use
+	  - They are the most expesive
+	  - Recommended for short terms and interrupted workloads
+
+	Reserved instances
+	 - from 1 to 3 years
+	 - payment upfront
+	 - 75% discount compared to On demand
+	 - There are other subtypes like..
+	 	- Convertible Reserved instance: Can change the EC2 instance type, up to 54% discount
+	 	- Scheduled Reserved instance: Launch within the time window you reseve (1 hour a day, from 15:00 to 18:00 etc)
+
+	Spot Instances
+		- 90% discount
+		- You can lose the instance at any time if your max price is less than the current spot price
+		- Useful for jobs that can be rerun (batch process, image rendering...)
+		- If your spot is claimed you can block it from 1 to 6 hours
+		- If you cancel a spot request, the spot instance is not cancelled, you have to do it manually
+		Spot Fleets
+			- Define possible launch pools and launch the one that fits better according the strategy choosen (lowestPrice,diversified,capacityOptimized)
+		- In general the best plans are savings plans, reserved instances, and spot instances
+
+	Dedicated Host
+		- Physical dedicated host for your use (not shared)
+		- Full control for EC2 instance
+		- 3 years contract
+		- More expensive
+		- Useful to bring your own licensed software
+
+	Dedicated Instance
+		- Instances running hardware that is dedicated to you
+		- May share the hardware with other accounts but only your accounts
+		- No control over instance placement
+
+	There are as well other types of Instances:
+		- R apps that need a lot of RAM
+		- C apps that need good CPU (databases,computational things)
+		- M Medium approach between Ram and CPU (general,Webs)
+		- I Apps that need good I/O (databases)
+		- G Apps that need good GPU (Video rendering, machine learning)
+
+		T2/T3 bustable instances (up to capacity, use credits)
+		T2/T3 unlimeted burst
+		https://www.ec2instances.info/
+
+
+
+Placements groups
+- You can define how your EC2 instances will be set respect the rest of your AWS environment or respect other EC2 instances
+- There are 3 strategies
+	- Cluster: All instances in the same rack (and availability zone) 
+			- Pros: Low latency, high speed netowrk
+			- Cons: If the rack fails, all instances fail at the same time
+			- Use case: Bigdata jobs, apps that need high speed network
+
+	- Spread: Every EC2 instance will be in a different hardware
+			- Pro: Across different availability zones,EC2 instances in a different hardware
+			- Cons: Limited to 7 instances per availability zone
+			- Use case: Apps where max availability is needed and when every instance must be independent from each other
+
+	- Partition: 
+			- Up to 7 partitions per availability zone, in every partition you can add many EC2 instances
+			- Up to 100 EC2 instances
+			- Partition are in a different racks
+			- Use case: HDFS, cassandra, Kafka, HBASE
+
+EC2 Metadata
+- to access to the EC2 metadata, from the CLI of the EC2 we have to run curl http://169.254.169.254/latest/meta-data/
+
+S3
+- buckets are defined at a region level
+- must start with lower case or number
+- must use multipart upload if file bigger than 5gb
+- you can version the files uploaded and when you delete them, they are marked as deleted but the files are there
+
+S3 Encryption (4 types)
+	- SSE-S3 Encryption using keys handled and managed by AWS, encryption server side
+		uses AES-256 encryption
+		you must set the header "x-amz-server-side-encryption":"AES256"
+	- SSE-KMS: Encryption using keys handled and managed by KMS
+		you must set the header "x-amz-server-side-encryption":"aws:kms" and have control over
+		the rotation policy
+	- SSE-C: server-side encryptopn using keys fully managed bu the customer
+		AWS makes the encryption but does not store the file
+		HTTPS must be used when sending the file and the key
+	- Client Side Encryption
+		Client library such Amazon S3 Encruption CLient must be used
+		Client must encrypt data before sending and decrypt when receiveing
+		Customer fully manages the keys and encryption cycle
+	-Other: HTTPS enpoint is called encryption in flight and encrytion in flight is also called SSL/TLS
+
+S3 Security
+- it has VPC endpoints, it allows conection to the bucket without internet
+- it has logs
+- it has MFA
+- you can use Signed URLs that are valid for a limited time, and for certain users
+
+S3 Bucket policies
+-it is a json that contains..
+ Resources: buckets and objects the policy will applied to
+ Actions: Set of API to allow or deny
+ Effect: Allow or Deny
+ Principal: The account or user to apply the policy to
+
+S3 CORS (Cross Origin Resource Sharing)
+- It is used to share data with other S3 bucket
+- you can limit the amount of data shared
+
+S3 Consistency Model
+- Read after consistency PUTS of new objects
+	* as soon as an object is written we can retrieve it
+	* execpt if we did a get before to see if the object existed, then it takes a while
+- Eventual consustency for DELETES and PUTS of existing objects
+    * if we read an object after updating we might get the old version
+    *  if we delete an object we might still be able to retrieve it for a short time
+
+ S3 Logs
+ - Access server logging property stores all movement from the bucket as a log
+
+ S3 Cross Region Replicator
+ - You can replicate the content of the bucket to another one from different region (Management->Replication)
+ - Versioning must be enabled in both buckets
+ - can be in different accounts
+ - the copy is asyncronous
+ - Must give proper IAM permisions
+
+ S3 Pre Signed URLS
+ - you URL that will expire in some defined amount of time
+
+ S3 storage classes
+ https://aws.amazon.com/s3/storage-classes/
+ https://calculator.aws/#/addService
+ 
+ - S3 Infrequent Access (IA)
+ 	for data that is less frequent accessed but required rapid access
+ 	cheaper than S3 standard
+ 	ideal for buckups 
+ - S3 One Zone - Infrequent Access (IA)
+ 	Same as IA but data is stored in a single AZ (in case of disaster you'd lose your data)
+ 	20% cheaper than IA
+ 	ideal for secondary backup
+ - S3 Intelligent Tier
+ 	it moves your data from S3 standard to IA based on your data use
+ 	it charges a small fee to do the monitoring
+ 	Available across all AZ
+ - S3 Glacier
+ 	Data is retained for long term (minimun 90 days)
+ 	Replacement for magnetic tape storage
+ 	cheap storage per month (0,004$ / GB + Retrieval cost)
+ 	Each item in Glacier is called Archive (Up to 40GB)
+ 	Archives are stored in vaults (not in buckets although is the same)
+ 	Retrieval options each one has a different cost:
+ 		Expedited (1 to 5 min)
+ 		Standard (3 to 5 hours)
+ 		bulk (5 to 12 hours)
+- S3 Glacier Deep Archive (it is cheaper than standard Glacier)
+	Retrieval options
+		Standard (12 hours)
+		Bulk (48 hours)
+		Minumun storage 180 days
+
+S3 Life Cycle policies (Bucket->Management->Lifecycle)
+- You can configure the movement of the data from one type of storage to other
+- Delete files and versions after some time 
+- Delete files with some prefix or tags
+
+S3 Performance
+- multi part upload:
+  recommended for files >100MB, can help paralelize uploads
+- S3 transfer acceleration
+  uses less public internet and more private AWS network passing through a edge location
+
+S3 Notification Event
+- You can create a notification event every time you add/modify/delete a file un the bucket
+- S3 bucket -> Properties ->Events (the versioning of the bucket should be enabled)
+
+S3 Object Lock & Glacier Vault Lock
+- Adopt a WORM model (Write Once Read Many)
+- Block and object version from deletion from a specific amount of time
+- For Glacier you can lock the Policy and can no longer be changed
+
+AWS Snow Ball
+- Physical transport device to move data in/out AWS
+- it's KMS encrypted
+- pay per data transferred
+- if it takes more than 1 week to transfer all your data, it is worth using snowball
+
+AWS SnowBallEdge
+- like snowball but you can make computational calculation while moving the data, it can have an EC2 instance inside!
+
+AWS SnowMobile
+- it is a truck to transfer more than 10 PB
+
+AWS SQS (Funciona como kafka con producers y consumers AWS SQS estaria en el medio)
+- AWS SQS – Standard Queue
+• Oldest offering (over 10 years old)
+• Fully managed
+• Scales from 1 message per second to 10,000s per second  automatically
+• Default retention of messages: 4 days, maximum of 14 days
+• No limit to how many messages can be in the queue
+• Low latency (<10 ms on publish and receive)
+• Horizontal scaling in terms of number of consumers
+• Can have duplicate messages (at least once delivery, occasionally)
+• Can have out of order messages (best effort ordering)
+• Limitation of 256KB per message sent
+
+- AWS SQS – Delay Queue
+• Delay a message (consumers don’t see it immediately) up to 15 minutes
+• Default is 0 seconds (message is available right away)
+• Can set a default at queue level
+• Can override the default using the DelaySeconds parameter
+ 
+ - Visibility timeout says how much time the message is invisible to the other consumers (once consumed the message is deleted), so that the message is not processed twice
+ if you want to change this parameter you have to use the ChangeMessageVisibility API 
+- DeadLetterQueue when a message can't be consumed, the consumer ask to the SQS to send it again, if it can't be consumed again, the message 
+will go to the DeadLetterQueue
+- LongPolling Usually the consumer asks the SQS whether there is a new message to be consumed, if not, if longPolling is activated, for 10 or 20 sec the
+SQS will sent automatically a new message to the consumer without the consumer being asking
+
+AWS SQS FIFO
+- sends messages in order
+- the name has to be ended by .fifo
+- no duplicates (if deduplication is activated, it removes duplicates messages)
+- not available in all regions
+- you can have as many consumers as partitions groups
+- throughput limit of 300 messages per second
+
+AWS SNS
+- it is like a publish susbcribe method
+- you can publish a change to a many SQS (SNS+SQS it is called FAN OUT)
+- up to 10 millions subscribers
+- up to 100.000 topics
+- lets you receive email notifications
+
+AWS Kinesis (Streams)
+- Like SQS but with many consumers
+- Cheaper than SQS
+- Automatically duplicates data to 3 AZ
+- Data is divided in ordered shards or partitions (Like lanes in the high way)
+- Data retention up to 7 days
+- ability to reprocess data
+- shards can receive up to 1000 messages or 1MB per second and send 
+- billing is per shard provisioned
+- messages with the same key go to the same shard/partition 
+- KCL enable the consumption of kinesis efficiently
+- by default data is 64encoded
+https://aws.amazon.com/blogs/database/streaming-changes-in-a-database-with-amazon-kinesis/
+
+Kinesis Firehouse
+- sends data to S3,Redshift,Splunk and ElasticSearch
+- Near real time (least buffer is 1 minute)
+- You can transform data with Lambda
+- does not store data
+- pay per amount of data processed
+
+Kinesis DataAnalytics
+- receives data from kinesis streams or firehouse and perform complex queries
+- real time
+- autoscaling
+- pay per consumption rate
+
+Amazon MQ
+- it is used when there is a migration from on premise to the cloud and you want to keep using your messagins system
+- it supports protocols: openwire,ws,mqtt,stomp,amqp
+
+AWS Lambda
+- Functions that can be executed independnly from the EC2 instances
+- Autoscale
+- Priced by execution time and GB
+- Supports Node.js, Python, Java, Golang, C#,/Powershell, Ruby, Custom API
+- DO NOT support Docker
+- Pricing https://aws.amazon.com/lambda/pricing/
+
+AWS Lambda Limits to Know
+• Execution:
+• Memory allocation: 128 MB – 3008 MB (64 MB increments)
+• Maximum execution time: 300 seconds (5 minutes), now 15 minutes but 5 for exam
+• Disk capacity in the “function container” (in /tmp): 512 MB
+• Concurrency limits: 1000
+• Deployment:
+• Lambda function deployment size (compressed .zip): 50 MB
+• Size of uncompressed deployment (code + dependencies): 250 MB
+• Can use the /tmp directory to load other files at startup
+• Size of environment variables: 4 KB
+• Our rule of thumb is simple: If you have a small piece of code that will rarely need to be changed and that needs to
+run in response to something that happens in your AWS account, then Lambda is a very good default choice. You can even define the code in your CloudFormation
+template so that this piece of custom functionality truly becomes part of your infrastructure. For everything else, we advise a lot of caution.
+
+Lambda @ Edge
+- deploy lambda functions in all regions
+
+
+AWS API Gateway
+- to call lambda functions and others from the client
+- support several environments
+
+AWS DATABASES
+* RDBMS
+	- RDS (MySQL,PostgreSQL,Oracle SQL)
+		Must provision EC2 instance & EBS but you CAN NOT make SSH
+		Monitoring through CloudWatch, sends data to cloudwatch every minute
+		High availability, Reliability, supports multi AZ (can read from replicas but writes only in 1)
+		Cost based on provisioned EC2 and EBS
+		2/3 minutes to recover from a failover
+		Storage autoscaling
+		High troughput low latency
+		Automated backups (it has transaction logs every 5 min, retention up to 35 days)
+		Manual Snapshots
+		Read Replicas: 
+			-Up to 5 read replicas instances  to read
+			- Replication is ASYNC so reads are eventually consistent (not updated at the same moment)
+			- Replicas can become their own database
+			- The replicas are used to other process read from them (no write or update)
+			- If the replica is in a different Availability Zone, we are going to be charged by the network cost. (it'sfree within the same AZ)
+			-For disaster recovery we have our replica ina different AZ with SYNC replication and with the same DNS so no human intervention is needed
+
+	- Aurora (PostgreeSQL,MySQL)
+		Multi AZ
+		OLTP
+		AutoScaling from 10GB to 64TB
+		Autohealing
+		Serverless option
+		Same as RDS but with less maintenance and more performance
+		Cost per EC2 and storage usage
+		You can trigger procedures stored in Lambda
+		Encryption better than RDS
+
+* NoSQL 
+	-DynamoDB
+		Uses EC2
+		Only manage tables, no databases
+		inside every partition, data is sorted
+		can replace ElastiCache
+		multi AZ
+		DAX read cache
+		security through IAM
+		can only query on PK or indexes
+		has transactions
+		paid per exact usage (capacity and storage)
+	- ElastiCache
+		similar to RDS but for caches
+		in-memory, very low latency
+		Must provision EC2
+		key/value store, frequent reads less writes, cannot use SQL
+		multi AZ
+		cost per hour based on EC2 and storage
+	- Document DB is like MongoDB
+
+* Object Store S3
+	- S3
+		good for big objects
+		serverless max object size 5TB
+		pay per storage usage,network cost and number of requests
+* Data Warehouse
+	- Redshift
+		it's OLAP (online analytical processing and datawarehousing)
+		columnar store
+		pay based on the instane provisioned
+		has SQL
+		integrate with BI tools
+		reads from S3, DynamoDB...
+		scale from 1 to 128 nodes
+		Redshift spectrum allows to query data direcly in S3
+	- Athena
+		serverless
+		pay per query o TB of data scanned
+		secured thorugh IAM
+		uses presto engine
+
+* Search
+	- ElasticSearch
+		you can search any field even partially matches
+		(in DynamoDB only PK or indexes)
+		multi AZ
+		pay per node
+		good por search/indexing
+* Graphs
+	- Neptune (graph0)
+		it is for high relationship data
+		social networking graph
+		pay per node provisioned
+
+AWS Monitoring
+-CloudWatch Metrics
+	Metric is a variable to monitor cpu usafe, networking..
+	Metric belong to namespace
+	Dimensions is an atributte of a metric (insance id, environment..)
+-Dashboards
+	price: 3 dashboards (up to 50 metrics)for free
+	3$ per dashboard per month afterwards
+	shows graphs from different regions, it's global
+-AWS CloudWatch Logs
+	Applications can send logs to CLoudWatch using the SDK
+	CloudWatch can send the logs to S3,ElasticSearch..
+	Pay per data stored in CLoudWatch
+	can define expiration policies
+	Logs can be encrypted
+- AWS CloudTrail
+	Enable by default
+	Stores all events in the AWS account
+	You can add logs from CloudWatch logs
+	if something is deleted, look first in CloudTrail
+
+- AWS Config
+	Stores all configuration in AWS
+	Can set alarms when the config is changed
+	You can set actions when an alarm is triggered
+	Does not deny any action, just inform
+	Pricing: no free tier, 2$ per active rule per region per month
+
+- AWS STS(SECURITY TOKEN SERVICE)
+	allows to grant limited and temporary access to AWS resources
+	allows to assume roles to other accounts and impersonate credentials
+	temporary credentials can be valid between 15min and 1 hour
+	get session token for MFA for user or root access
+
+- Identity Federation in AWS
+	Federaction lets users outside of AWS assume some roles for accessing AWS resources
+	Using Federation you don't need to create IAM users
+
+- AWS Organizations
+Global service
+allows to manage multuple AWS accounts
+the main account is the master account, the other are member accounts
+consolidated bills across all accounts
+pricing benefits
+API is available to automate aws acount creation
+
+- IAM Roles vs Based policies
+When you assume a role you give up your original permisions and take the permisions assigned to the role
+when using a resource based policy you don't have to give up your permisions
+-Permisions boundaries are more restrictive than normal permissions, so they overwrite the normal permissions
+
+AWS Security & Encryption
+	SSL -> Data is encrypted before sending and decrypted once received by the server
+	Server Side Encryption at rest -> Data is encrypted after being recevide by the server and decrypted before being sent
+	Client side encryption -> Data is encrypted in the client side and the server does not know how to decrypted
+
+AWS KMS (Key Management Service)
+it has two types of CMK (Customer Master Key)
+	- Symmetric (AES-256 keys)
+		used to encrypt and decrypt
+		Is used in AWS
+		necessary for envelope encryption
+		you never get access to the key unencrypted
+		Types of keys
+			AWS Managed Service Default CMK: Free
+			User Keys created in KMS $1 per month
+			User Keys imported 1 per month
+			you pay for API calls to KMS ($0,03/10000 calls)
+		never store data in plain text, even in your code
+		encrypted secres can be stored in the code
+		kms only help in encryptoing 4kb of data per call
+		if data>4kb, use envelope encryption
+		to have access to KMS, key policy should allow the user and IAM policy alows API calls
+		kms keys are attached to a region, you can copy an snapshot to other region and change the key
+	- Asymmetric (RSA & ECC key pairs)
+	public (encrypt) and private key (decrypt) pair
+	used for encrypt/decrypt operations
+	public key downloable but you access the private key unencrypted
+	use case: encryptopn outside of AWS by users who can't call the MKS API
+	
+CloudFormation
+- With CloudFormation, you define your AWS resources as a YAML script (or JSON). Then you point CloudFormation to your AWS account, and it creates all the resources you defined. If you run the script again without making any changes, CloudFormation won’t do anything (it’s idempotent). If you make a change to one resource, it will change only that resource, plus any other resources that depend on the modified one (if necessary).
+If you change your mind about an update, you can safely tell CloudFormation to roll it back. You can also tell
+CloudFormation to tear down everything it created, and it will give you your AWS account back in the original state
+- The problems arise when you modify something manually that should be under CloudFormation’s control, because when you do that, you can expect unpredictable behavior
+- Our rule of thumb is to let CloudFormation deal with all the AWS things that are either static or change very rarely; things such as VPC configurations, security groups, load balancers, deployment pipelines, and IAM roles. Other things, such as DynamoDB tables, Kinesis streams, Auto Scaling settings, and sometimes S3 buckets, are better managed elsewhere.
+
+- With Ref! whe can pass parameters pointing to the same YAML document or somewhere else.
+We can predefined parameters such as AWS::AccountID, AWS::Region, AWS::NotificationARNs etc
+You can even output the variables so that other templates can use it
+
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
+
+
+Route 53
+- It's a DNS service. It lets you translate domain names to IP addresses.
+
+- ARCHTECTURE EXAMPLES
+aws.amazon.com/architecure
+
+discount Udemy JUL_20_GET_STARTED
+
+AWS CLI
+- aws configure -> to configure the account, it stores data in ~/.aws/
+- aws s3 mb bucket-name -> to create a new bucket
+- aws s3 rm bucket-name -> to remove a bucket
+- aws s3 ls bgc.4923b012b1979efc5072337524277646ac48c916 ->list elements from the bucket
+- aws s3 cp testfile.txt s3://bgc.4923b012b1979efc5072337524277646ac48c916/ -> copy file from local to s3
+- aws s3 cp s3://tbu-data-lake/src/kafka/web-algorithmInfo/source=PP2/ . --recursive --exclude="*" --include="*date=2018-03-19 23*"
+- aws s3 rm "s3://tbu-data-lake/src/kafka/web-algorithmInfo/source=PP2/hash=06c37bb6e7d3b6b1beaa40fa50fe1137/date=2018-03-12 19/" --recursive --profile df_retention
+
+
+
+
+
+
+

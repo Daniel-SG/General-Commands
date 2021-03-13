@@ -1,0 +1,183 @@
+﻿HBASE 
+
+login to Ambari from browser
+http://127.0.0.1:1080
+
+cli web
+http://127.0.0.1:4020
+
+cli
+  ssh into vm and change root password
+ssh root@127.0.0.1 -p 2222
+
+
+FEATURES
+- HBase helps solve data access issues where random access is required   
+- HBase scales easily, making it ideal for Big Data storage and processing needs 
+- Table data is stored on the Hadoop Distributed File System (HDFS) 
+- HBase tables are comprised of rows, columns, and column families 
+- Every row has a row key for fast lookup 
+- Each column belongs to a particular column family 
+- A table has one or more column families 
+- HBase is essentially a distributed, sorted map   
+- Sorted Map: HBase stores table data as a map, and guarantees that adjacent keys will be stored next to each other on disk 
+- Every row has a row key,a row key is analogous to a primary key in a traditional RDBMS 
+– Rows are stored sorted by row key to enable speedy retrieval of data 
+- Columns can be created on the fly 
+– A column exists for a particular row only if the row has data in that column 
+- All columns belonging to the same column family have the same prefix
+- In HBase, we have just one indexed column – the row key 
+– In relational databases, one would typically normalize tables and use joins to retrieve data 
+– HBase does not support explicit joins ,Instead, a lookup by row key joins data from column families 
+– Relational tables can scale through partitioning or sharding data 
+– HBase automatically partitions data into smaller pieces
+- Commonly queried data is added to the row key in order to achieve the fastest access
+
+HBase does not provide certain popular RDBMS features 
+– Integrated support for SQL 
+– External projects such as Hive, Impala, and Phoenix provide various ways of using SQL to access HBase tables 
+– Support for transacctions 
+– Multiple indexes on a table 
+– ACID compliance (Atomicity, Consistency, Isolation, Durability)
+
+CRUD Create, read, update, delete ->Hbase provides all of them 
+- Provides versioning to keep track all the historical changes of your data 
+
+HBase Regions
+- HBase tables are split into Regions it is like a partition in hdfs
+- Regions are served to clients by RegionServer daemons 
+- A RegionServer usually runs on each slave node in the cluster A RegionServer will typically serve mulIple regions 
+– The regions it serves may belong to a number of different tables 
+
+
+ Use HBase if…
+– You need random write, random read, or both (but not neither) 
+– Your applicattion performs thousands of operations per second on multiple terabytes of data 
+– Your access paCerns are wellknown and relatively simple 
+
+Don’t use HBase if… 
+– Your applica)on only appends to your dataset, and tends to read the whole thing when processing 
+– Primary usage is for ad:hoc analy)cs (non:determinis)c access paCerns) 
+– Your data easily fits on one large node 
+ 
+
+READ HEAVEY ACCESS PATTERNS
+- Avoid joining tables 
+– Place all of the data that the applicaGon needs in a single row or in a set of conGguous rows 
+– Denormalize one to many relaGonships by pre:materializing them 
+- With denormalized data, mulGple copies of a data item may appear in many rows 
+– Any updates must be applied to all copies of the data item 
+- Optimize the row key and column family layouts 
+– Row keys need to allow for quick reading mainly via gets 
+– Column families must be Optimized to use the Block Cache efficiently 
+
+WRITE HEAVY ACCESS PATTERNS
+Optimize the row key to spread the load evenly across RegionServers 
+– Using only one RegionServer’s resources is inefficient 
+! Normalized tables may result in faster updates 
+– Denormalized data may require many rows to be updated, rather than 
+just a single row 
+– Read performance must also be considered when making this decision, 
+since a join must be performed if data is normalized
+
+COMMANDS hbase-shell
+help
+status
+version
+
+NAME_SPACE
+
+ Create a name space 
+create_namespace 'people' 
+
+ drop
+drop_namespace 'namespaceName'
+
+ alter
+alter_namespace 'namespaceName', {METHOD => 'set','PROPERTY_NAME' => 'PROPERTY_VALUE'}
+
+MAINTENANCE MODE
+ Disabling a table puts it in a maintenance state
+ disable 'table_name'
+ enable 'table_name'
+
+   INSPECT TABLE
+!describe "sales”
+ 
+CREATE TABLE 
+ create table employees in people namespace 
+create 'people:employees','work','demo' 
+
+ create table movie with descriptions
+create 'movie', {NAME => 'desc'}, {NAME => 'media'}
+
+ Create a table called sales with a family column called order
+create 'sales','order'
+
+ to drop a table first it has to be disabled
+disable 'movie'
+drop 'movie'
+
+ To truncate the table is not needed to disable it,Table and column family schema are unaffected 
+truncate 'movie'
+
+ALTER TABLE
+
+ Add a new column family to an exis=ng table
+alter 'movie', NAME => 'media'
+
+ permanently delete an exis=ng column family 
+alter 'movie', NAME => 'media', METHOD => 'delete'
+
+ Modify an exis=ng column family with new parameters
+alter 'movie', NAME => 'desc', VERSIONS => 5
+
+ alter_async to alter a column family schema
+alter_async 'movie', NAME => 'desc', VERSIONS => 6
+
+ 
+ Query a table with the rowId 99 
+get 'NAME_OF_THE_TABLE','99' 
+
+get 'movie', 'row1', {COLUMN => 'desc:title'}
+get 'movie', 'row1', {COLUMN => 'desc:title',VERSIONS => 2}
+
+ 
+ Query the entire table 
+scan 'NAME_OF_THE_TABLE' 
+
+ show 10 lines 
+scan 'movie', {LIMIT => 10}
+ 
+ Insert or update data 
+put 'NAME_OF_THE_TABLE','ROWID','order:orderID','US-2014-234AA','DIFFERENT VALUES WE MAY LIKE TO ADD' 
+
+ Insert or update data in different lines
+put 'sales','5010','order:orderID','US-2014-169552'
+put 'sales','5010','order:orderDate','2017-10-01'
+put 'sales','5010','order:shipDate','2017-10-13 03:25:03.567'
+
+
+ 
+ Delete an specific column of a row of an specific version 
+ Adding a time deletes that version of the column and all previous versions 
+delete 'NAME_OF_THE_TABLE','ROWID','COLUMN_NAME','TIME_STAMP' 
+ 
+ Delete an specific column of a row  
+delete 'NAME_OF_THE_TABLE','ROWID','COLUMN_NAME' 
+ 
+ Delete all information related to an specific rowID  
+delete 'NAME_OF_THE_TABLE','ROWID' 
+
+
+  LOAD FROM FILE
+ hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.separator=, -Dimporttsv.columns="\
+HBASE_ROW_KEY, \
+order:orderID, \
+order:orderDate, \
+order:shipDate, \
+order:shipMode, \
+order:profit, \
+order:quantity, \
+order:sales" sales hdfs://sandbox.hortonworks.com:/tmp/sales.csv
+
