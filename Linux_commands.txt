@@ -16,3 +16,20 @@ du -sh /root/path/path2/
 
 Spaces system
 df
+
+sdout errors
+----------
+https://www.baeldung.com/linux/silencing-bash-output
+
+Standard output (1,stdout) and standard error (2,stderr) by default both go to stdout
+
+If we want to silent to output, we have to send it to /dev/null
+command > /dev/null
+
+To silence error output, we redirect stderr to /dev/null:
+
+command 2> /dev/null
+
+To silent both:
+
+command > /dev/null 2>&1 or command &> /dev/null
