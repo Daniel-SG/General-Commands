@@ -3,6 +3,11 @@
 --Query table definition
 select * from pg_table_def where tablename = 'testtable';
 
+--Query the PG_DATABASE_INFO catalog table to view details about databases.
+select datname, datdba, datconnlimit
+from pg_database_info
+where datdba > 1;
+
 
 --The PG_TABLE_DEF system table contains information about all the tables in the cluster.
 --By default, new database objects, such as tables, are created in a schema named "public".
@@ -11,6 +16,10 @@ select distinct(tablename) from pg_table_def where schemaname = 'public';
 
 --Query the PG_USER catalog to view a list of all database users, along with the user ID (USESYSID) and user privileges
 select * from pg_user;
+
+--Query the PG_USER_INFO catalog table to view details about a database user.
+select * from pg_user_info;
+
 
 --The user name rdsdb is used internally by Amazon Redshift to perform routine administrative and maintenance tasks. 
 --You can filter your query to show only user-defined user names by adding where usesysid > 1 to your select statement
@@ -59,4 +68,46 @@ cancel <pid>
 set query_group to 'superuser';
 cancel 18764;
 reset query_group;
+
+set statement_timeout to 1; -> makes queries timeout after 1 ms
+set wlm_query_slot_count to 3; -> limits the number of concurrency queries that can be run
+
+
+set timezone='Etc/GMT+1' -> change timezone
+select pg_timezone_names(); -> see available timezones
+
+--To view a list of supported time zone abbreviations, execute the following command.
+select pg_timezone_abbrevs();
+
+--Check number of nodes and slices
+select * from stv_slices
+
+--Returns information to track or troubleshoot a data load.
+-- This table records the progress of each data file as it is loaded into 
+--a database table.
+--Check node slice that loaded the data
+select * from stl_load_commits
+
+-- Re-sorts rows and reclaims space in either a specified table or all tables in the current database.
+vacuum table_name;
+-- https://docs.aws.amazon.com/redshift/latest/dg/r_VACUUM_command.html
+
+-- ANALIZE Updates table statistics for use by the query planner.
+analyze table_name;
+-- https://docs.aws.amazon.com/redshift/latest/dg/r_ANALYZE.html
+
+--Grant permission on all tables in myschema to guest user account 
+grant all on all tables in schema myschema to guest
+grant all on schema myschema to guest
+
+--Revoke permission on test table from guest user account
+revoke all on table myschema.test from guest
+
+-- In pg_table_def you can see the type and the encoding for every column in the table
+select "column", type, encoding
+from pg_table_def
+where tablename = 'cartesian_venue_default'
+
+-- analyze compression tells you which encoding type you should use for each column in the table based on the datatype
+analyze compression table_name
 

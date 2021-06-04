@@ -25,6 +25,8 @@ select dateadd(day,1,'now');
 select caldate + interval '1 minute' as dateplus from date
 where caldate='12-31-2008';
 
-
+--Add 12 hours (half a day) to the specified date:
+select caldate + interval '0.5 days' as dateplus from date
+where caldate='12-31-2008';
 
 
