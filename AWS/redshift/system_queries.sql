@@ -88,7 +88,7 @@ select * from stv_slices
 --Check node slice that loaded the data
 select * from stl_load_commits
 
--- Re-sorts rows and reclaims space in either a specified table or all tables in the current database.
+-- Re-sorts rows (if table contains sort key columns) and reclaims space in either a specified table or all tables in the current database.
 vacuum table_name;
 -- https://docs.aws.amazon.com/redshift/latest/dg/r_VACUUM_command.html
 
@@ -110,4 +110,12 @@ where tablename = 'cartesian_venue_default'
 
 -- analyze compression tells you which encoding type you should use for each column in the table based on the datatype
 analyze compression table_name
+
+--Check the data distribution with min and max range on each node slices for date and sales table - dateid column only.
+select trim(name) as table, slice, sum(num_values) as rows, min(minvalue),
+max(maxvalue)
+from svv_diskusage
+where (name in ('date') and col =0) OR (name in ('sales') and col =5)
+group by name, slice
+order by slice, name;
 

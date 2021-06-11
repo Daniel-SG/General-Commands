@@ -38,6 +38,7 @@ create table users(
 	dateid smallint not null sortkey,
 	holiday boolean default('N')
 	saletime timestamp);
+    DISTSTYLE AUTO  --choose automatic distribution style https://docs.aws.amazon.com/redshift/latest/dg/t_Distributing_data.html
 
 --If you specify a table name that begins with '# ', the table will be created as a temporary
 --table when the session is over, the table goes away. The following is an example (must execute both statements together:
