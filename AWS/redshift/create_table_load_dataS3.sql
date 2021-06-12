@@ -35,13 +35,16 @@ create table users(
 	phone char(14),
 	likemusicals boolean),
 	caldate date not null,
-	dateid smallint not null sortkey,
+	dateid smallint not null sortkey, --https://aws.amazon.com/blogs/big-data/amazon-redshift-engineerings-advanced-table-design-playbook-compound-and-interleaved-sort-keys/
 	holiday boolean default('N')
-	saletime timestamp);
+	saletime timestamp)
+    PRIMARY KEY(phone), --Primary key constraints are informational only. They aren't enforced by the system, but they are used by the planner.
     DISTSTYLE AUTO  --choose automatic distribution style https://docs.aws.amazon.com/redshift/latest/dg/t_Distributing_data.html
+                    -- https://aws.amazon.com/blogs/big-data/amazon-redshift-engineerings-advanced-table-design-playbook-distribution-styles-and-distribution-keys/
+    BACKUP { YES | NO } --A clause that specifies whether the table should be included in automated and manual cluster snapshots
 
---If you specify a table name that begins with '# ', the table will be created as a temporary
---table when the session is over, the table goes away. The following is an example (must execute both statements together:
+--If you specify a table name that begins with '# ' or with the tag 'temp', the table will be created as a temporary
+--table when the session is over, the table goes away. The following is an example (must execute both statements together)
 create table #newtable (id int);
 select * from #newtable
 
