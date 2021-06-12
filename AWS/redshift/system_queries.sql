@@ -119,3 +119,8 @@ where (name in ('date') and col =0) OR (name in ('sales') and col =5)
 group by name, slice
 order by slice, name;
 
+-- SYSTEM TABLES
+-- STL: Logs generated in every node. Only contains from 2 to 5 days data information
+-- STV: Virtual tables that contain snapshots of the current system based on transient memory data, they are not persisted
+-- System Catalogs Store Schema: Have informatio about tables and columns, the start by the prefix PG_
+
