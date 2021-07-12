@@ -29,7 +29,7 @@ drop user guest;
 
 -- Create Tables
 create table users(
-	userid integer not null distkey sortkey,
+	userid integer not null distkey -- To collocate all relevant rows in a single node. https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-best-dist-key.html
 	venueid smallint encode raw,
 	address varchar(20),
 	phone char(14),
