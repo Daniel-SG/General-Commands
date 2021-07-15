@@ -99,12 +99,6 @@ vacuum table_name;
 analyze table_name;
 -- https://docs.aws.amazon.com/redshift/latest/dg/r_ANALYZE.html
 
---Grant permission on all tables in myschema to guest user account 
-grant all on all tables in schema myschema to guest
-grant all on schema myschema to guest
-
---Revoke permission on test table from guest user account
-revoke all on table myschema.test from guest
 
 -- In pg_table_def you can see the type and the encoding for every column in the table
 select "column", type, encoding
