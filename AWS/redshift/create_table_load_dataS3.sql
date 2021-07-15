@@ -68,6 +68,19 @@ update category
 set catgroup='Theatre'
 where catid between 6 and 8;
 
+-- Rename the table 
+alter table users rename to users_bkup;
+
+-- change column type
+alter table event alter column eventname type varchar(300);
+
+-- rename column
+alter table venue rename column venueseats to venuesize;
+
+-- Change the owner
+alter table venue
+rename column venueseats to venuesize;
+
 -- Replace ARN of the IAM Role associated with Redshift Cluster
 
 -- Copy data from a AWS s3 bucket to our users table	
