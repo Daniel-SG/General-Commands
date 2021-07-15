@@ -3,6 +3,9 @@
 --Query table definition
 select * from pg_table_def where tablename = 'testtable';
 
+-- DDL Table
+show table testtable -- Like show create table
+
 --Query the PG_DATABASE_INFO catalog table to view details about databases.
 select datname, datdba, datconnlimit
 from pg_database_info
