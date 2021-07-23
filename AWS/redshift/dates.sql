@@ -29,4 +29,9 @@ where caldate='12-31-2008';
 select caldate + interval '0.5 days' as dateplus from date
 where caldate='12-31-2008';
 
+-- Get the current epoch/unixtime
+select date_part(epoch,sysdate)
+
+-- Convert from unixtime to date
+select timestamp 'epoch' + your_column * interval '1 second' AS your_column_alias from your_table
 
