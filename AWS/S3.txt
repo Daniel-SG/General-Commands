@@ -1,4 +1,18 @@
-S3
+COMMANDS:
+
+-- DELETE FROM BUCKET
+aws s3 rm s3://grip-redshift-staging/transformed_data/sessions/ --recursive;
+
+-- COPY FROM LOCAL
+aws s3 cp file.txt s3://my-bucket/
+aws s3 cp file.txt s3://my-bucket/ --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers full=emailaddress=user@example.com
+
+
+
+
+
+
+S3 DESCRIPTION
 - buckets are defined at a region level
 - must start with lower case or number
 - must use multipart upload if file bigger than 5gb
