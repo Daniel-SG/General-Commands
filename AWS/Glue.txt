@@ -1,0 +1,16 @@
+-- RESET BOOKMARKS
+aws glue reset-job-bookmark --job-name FromMySQLToS3_staging_sessions_insights;
+
+-- SCHEDULE JOBS 
+aws glue create-trigger --name streaming_views_scheduleder \
+ --type SCHEDULED \
+ --schedule  "cron(01 18 * * ? *)" \
+ --actions JobName=streaming_views,Timeout=60,Arguments={env=staging,job-bookmark-option=job-bookmark-enable} \
+ --start-on-creation;  
+
+
+aws glue create-trigger --name s3_to_redshift_prod_sessions_Insights_trigger \
+    --type CONDITIONAL \
+    --predicate '{"Logical":"ANY","Conditions":[{"JobName":"FromMySQLToS3_prod_sessions_insights","LogicalOperator":"EQUALS","State":"SUCCEEDED"}]}' \
+    --actions JobName=s3_to_redshift_prod_sessions_Insights,Arguments={--job-bookmark-option=job-bookmark-enable} \
+    --start-on-creation;
