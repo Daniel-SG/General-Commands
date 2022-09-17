@@ -42,6 +42,17 @@ Star Squema
 	D_Department ->
 								F_Budget     <- D_Time
 	D_Expense+Category ->
+	
+	* Datos NO normalizados(denormalized)
+	Pros: 
+	 - Toda la informacion disponible sin joins
+	 - Menos queries necesarias
+	 - Reduces el trafico de datos en la bbdd
+	Cons:
+	 - Actualizaciones son mas complejas ya que habra muchos registros a utilizar
+	 - Las tablas ocupan mas ya que contienen datos duplicados (de las tablas originales)
+	 
+	 Tablas no normalizadas pueden ser buenas para NoSQL databases
 
 Snowflake Squema
 	- hay varias dimensiones apuntando a otras dimensiones hasta llegar a la F_
@@ -56,6 +67,13 @@ Snowflake Squema
 	D_Colleague->D_Department ->
 									F_Budget <-D_Category_expense<-D_Expense_cat_grouping<-D_CAPEX
 	D_AcademicYear -> D_Semester->
+	
+	* Datos normalizados
+	  Pros:
+	   - Ocupan menos espacio que las denormalizadas
+	   - Cuando hay que hacer update, se hace solo en un registro por tanto es muy rapido
+	  Cons:
+	   - Para acceder a toda la informacion relacionada hay que hacer mas de una query o hacer joins
 
 Natural Key
  - Like PK but with some business meaning (instead of ID=37388 we have ID=DNI37388)
@@ -103,9 +121,18 @@ https://en.wikipedia.org/wiki/Slowly_changing_dimension
 	- Use the surrogate key in both Dimensions and Fact tables
 
 
+ACID Compliance:
+- Atomicity: Either the entire transaction succeeds, or the entire thing fails. if it's partially failed, it should roll back changes
+- Consistency: All databases rules are enforces or the entire transaction is rolled back
+- Isolation: No transaction is affected by any other transaction that is still in progress
+- Durablility: Once a transaction is commited, it stays, even if the system crashes immediately after.
 
+CAP Theorem:
+The theory says that you can have 2 but not the three.
+Las bases de datos modernas mas o menos cubren las 3
 
-
-
+- Availability: Specially if data is replicated
+- Consistency: When you write the data and you can get it back inmediatelly
+- Partition -tolerance (scalability)
 
 
